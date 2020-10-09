@@ -17,9 +17,9 @@ type ExpoWebhookPayload struct {
 }
 
 type ApiGatewayMap struct {
-	Body      ExpoWebhookPayload  `json:"body"`
-	Signature string              `json:"signature"`
-	Headers   map[string][]string `json:"headers"`
+	// Body      ExpoWebhookPayload `json:"body"`
+	Signature string `json:"signature"`
+	// Headers   map[string][]string `json:"headers"`
 }
 
 func HandleRequest(ctx context.Context, payload ApiGatewayMap) (events.APIGatewayProxyResponse, error) {
