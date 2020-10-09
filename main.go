@@ -1,16 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func main() {
-	fmt.Println("Before lambda Start calls the handler function")
-	lambda.Start(Handler)
+type MyEvent struct {
+	Name string `json:"name"`
 }
 
-func Handler() {
-	fmt.Println("my function has been invoked")
+func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
+	return fmt.Sprintf("Hello %s!", name.Name), nil
+}
+
+func main() {
+	lambda.Start(HandleRequest)
 }
