@@ -1,0 +1,63 @@
+name: Build and deploy
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    name: Install, test and publish
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.15.2' ]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Using go 
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }} 
+      
+      - name: building binary file
+        run: go build -o main main.go
+
+      - name: zip the build
+        uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r main.zip ./main
+        
+      - name: Displaying folder structure
+        run: ls -la
+
+      - name: Uploading the artifact to use it in the "deploy" job
+        uses: actions/upload-artifact@v2
+        with:
+          name: main
+          path: ./main.zip
+
+  deploy:
+    needs: build
+    name: Deploy the build to AWS lambda
+    runs-on: ubuntu-latest
+    steps:
+      - name: Downloading the bundl artifact from "build" job
+        uses: actions/download-artifact@v2
+        with:
+          name: main
+        
+      - name: Displaying structure of downloaded file
+        run: ls -la
+
+      - name: Using lamda actions to deploy
+        uses: appleboy/lambda-action@master
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_LAMBDA_REGION }}
+          function_name: ${{ secrets.AWS_FUNCTION_NAME }}
+          zip_file: main.zip
